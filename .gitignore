@@ -3,3 +3,4 @@ node_modules/
 tests/bats-core/
 *.log
 .mar/videos/
+.worktrees/
