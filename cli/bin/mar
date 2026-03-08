@@ -1,0 +1,53 @@
+#!/usr/bin/env node
+'use strict';
+
+const path = require('path');
+const src = path.join(__dirname, '..', 'src');
+
+const command = process.argv[2];
+
+switch (command) {
+  case 'init':
+    require(path.join(src, 'init.js')).run();
+    break;
+  case 'doctor':
+    require(path.join(src, 'doctor.js')).run();
+    break;
+  case 'version':
+    require(path.join(src, 'version.js')).run();
+    break;
+  case '--version':
+  case '-v':
+    require(path.join(src, 'version.js')).run();
+    break;
+  case '--help':
+  case '-h':
+  case undefined:
+    printUsage();
+    break;
+  default:
+    console.error(`Unknown command: ${command}`);
+    console.error('');
+    printUsage();
+    process.exit(1);
+}
+
+function printUsage() {
+  console.log(`mar-workflow CLI
+
+Usage: mar <command>
+
+Commands:
+  init                   Set up mar-workflow in the current project
+  doctor                 Check environment and configuration health
+  version                Show version information
+
+Options:
+  --help, -h       Show this help message
+  --version, -v    Show version information
+
+Examples:
+  mar init                   Interactive setup for a new project
+  mar doctor                 Check that everything is configured correctly
+  mar version                Print versions of mar, claude, gh`);
+}
