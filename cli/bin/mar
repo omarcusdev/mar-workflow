@@ -13,6 +13,9 @@ switch (command) {
   case 'doctor':
     require(path.join(src, 'doctor.js')).run();
     break;
+  case 'dispatch':
+    require(path.join(src, 'dispatch-cli.js')).run();
+    break;
   case 'version':
     require(path.join(src, 'version.js')).run();
     break;
@@ -40,6 +43,7 @@ Usage: mar <command>
 Commands:
   init                   Set up mar-workflow in the current project
   doctor                 Check environment and configuration health
+  dispatch               Spawn a squad worker in a new terminal tab
   version                Show version information
 
 Options:

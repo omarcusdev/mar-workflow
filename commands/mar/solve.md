@@ -7,14 +7,7 @@ allowed-tools:
   - Bash
   - Glob
   - Grep
-  - Task(squad-worker, Explore)
-  - TaskList
-  - TaskGet
-  - TaskCreate
-  - TaskUpdate
-  - SendMessage
-  - TeamCreate
-  - TeamDelete
+  - Task(Explore)
   - AskUserQuestion
 ---
 <objective>
@@ -33,8 +26,8 @@ Guided autonomy: work autonomously, ping the human only on ambiguity or decision
    ```bash
    REPO_SLUG=$(basename "$(git remote get-url origin 2>/dev/null || basename "$(pwd)")" .git)
    ```
-2. Create team: `TeamCreate` with `team_name: "mar-$REPO_SLUG"`
-3. If team exists: reconnect via `TaskList`, print current state
+2. Verify `mar` CLI: `mar version`
+3. Check active worktrees: `git worktree list`
 
 ## Step 2: Analyze the Problem
 
@@ -86,29 +79,28 @@ On approval:
    gh issue create --title "<title>" --body "<body>" --label "<labels>"
    ```
 
-2. Create tasks via `TaskCreate` for each issue
+2. Dispatch each worker in a physical terminal tab:
+   ```bash
+   mar dispatch \
+     --branch "feat/mar-$REPO_SLUG-<slug>" \
+     --name "<worker-name>" \
+     --task "<full task description with acceptance criteria>" \
+     --issue <N> \
+     --issue-title "<issue title>" \
+     --context "relevant-file1.ts,relevant-file2.ts"
+   ```
+   Each `mar dispatch` opens a **new terminal tab** with its own Claude Code instance and isolated worktree.
 
-3. Spawn squad workers for each task:
-   - `isolation: "worktree"`
-   - `mode: "bypassPermissions"`
-   - `subagent_type: "squad-worker"`
-   - `run_in_background: true`
-   - `team_name: "mar-$REPO_SLUG"`
-   - Use the Teammate Prompt Template from `_patterns.md`
-
-4. Each worker gets:
-   - Branch name: `feat/mar-$REPO_SLUG-<slug>` or `fix/mar-$REPO_SLUG-<slug>`
-   - Base branch: `origin/main`
-   - Task description with acceptance criteria
-   - Issue reference
+3. Repeat for each issue. Parallel workers run simultaneously in separate tabs.
 
 ## Step 6: Monitor
 
-Enter monitoring loop:
-- React to `SendMessage` from workers immediately
-- Track via `TaskList` — show progress
-- If worker is stuck: investigate, suggest approach, or reassign
-- If worker hits blocker: evaluate, escalate to human if needed
+Workers are independent Claude Code instances in separate tabs.
+Monitor via git and GitHub:
+- Branch activity: `git fetch --all && git branch -a --sort=-committerdate | head -10`
+- Recent commits: `git log --all --oneline --since="30 minutes ago"`
+- PRs created: `gh pr list`
+- Ask the human to relay status from worker tabs if needed
 
 ## Step 7: Complete
 
@@ -170,5 +162,5 @@ While running, the human can say:
 - Never implement — dispatch everything
 - Never merge to main — PRs only
 - Evidence before claims
-- React to teammate messages immediately
+- Monitor via git, not in-memory messaging
 </rules>
