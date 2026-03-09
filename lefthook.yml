@@ -1,0 +1,27 @@
+pre-commit:
+  commands:
+    block-main-commit:
+      run: |
+        BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "detached")
+        if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
+          WORKTREE=$(git rev-parse --show-toplevel 2>/dev/null)
+          MAIN_WORKTREE=$(git worktree list --porcelain | head -2 | tail -1 | sed 's/worktree //')
+          if [ "$WORKTREE" = "$MAIN_WORKTREE" ]; then
+            echo "ERROR: Direct commits to $BRANCH are blocked."
+            echo "Use a feature branch: git checkout -b feat/your-feature"
+            exit 1
+          fi
+        fi
+
+pre-push:
+  commands:
+    block-main-push:
+      run: |
+        while read _local_ref _local_sha remote_ref _remote_sha; do
+          REMOTE_BRANCH=$(echo "$remote_ref" | sed 's|refs/heads/||')
+          if [ "$REMOTE_BRANCH" = "main" ] || [ "$REMOTE_BRANCH" = "master" ]; then
+            echo "ERROR: Direct pushes to $REMOTE_BRANCH are blocked."
+            echo "Create a PR instead."
+            exit 1
+          fi
+        done
